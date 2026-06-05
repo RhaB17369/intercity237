@@ -10,5 +10,6 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Charger uniquement auth.php (pas db.php pour éviter la connexion MySQL)
+// Charger uniquement auth.php et helpers.php (pas db.php — évite la connexion MySQL)
 require_once __DIR__ . '/../src/includes/auth.php';
+require_once __DIR__ . '/../src/includes/helpers.php';

@@ -5,19 +5,21 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests unitaires pour includes/auth.php
- * Cible: ≥80% de couverture de code
+ * Tests unitaires pour includes/auth.php — cible ≥80% couverture
  */
 class AuthTest extends TestCase
 {
     protected function setUp(): void
     {
         $_SESSION = [];
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_POST = [];
     }
 
     protected function tearDown(): void
     {
         $_SESSION = [];
+        $_POST = [];
     }
 
     // ── h() — Échappement HTML ──────────────────────────────
@@ -78,9 +80,9 @@ class AuthTest extends TestCase
         $this->assertFalse(is_admin());
     }
 
-    public function test_is_admin_false_for_employee_role(): void
+    public function test_is_admin_false_for_passenger_role(): void
     {
-        $_SESSION['role'] = 'employee';
+        $_SESSION['role'] = 'passenger';
         $this->assertFalse(is_admin());
     }
 
@@ -109,16 +111,48 @@ class AuthTest extends TestCase
         $this->assertFalse(is_superadmin());
     }
 
-    public function test_is_superadmin_false_for_employee_role(): void
-    {
-        $_SESSION['role'] = 'employee';
-        $this->assertFalse(is_superadmin());
-    }
-
     public function test_is_superadmin_true_for_superadmin_role(): void
     {
         $_SESSION['role'] = 'superadmin';
         $this->assertTrue(is_superadmin());
+    }
+
+    // ── is_passenger() ──────────────────────────────────────
+
+    public function test_is_passenger_false_when_no_role(): void
+    {
+        $this->assertFalse(is_passenger());
+    }
+
+    public function test_is_passenger_true_for_passenger_role(): void
+    {
+        $_SESSION['role'] = 'passenger';
+        $this->assertTrue(is_passenger());
+    }
+
+    public function test_is_passenger_false_for_admin_role(): void
+    {
+        $_SESSION['role'] = 'admin';
+        $this->assertFalse(is_passenger());
+    }
+
+    // ── is_agent() ──────────────────────────────────────────
+
+    public function test_is_agent_false_when_no_role(): void
+    {
+        $this->assertFalse(is_agent());
+    }
+
+    public function test_is_agent_true_for_agent_role(): void
+    {
+        $_SESSION['role'] = 'agent';
+        $this->assertTrue(is_agent());
+    }
+
+    public function test_is_agent_false_for_passenger_role(): void
+    {
+        $_SESSION['role'] = 'passenger';
+        $this->assertFalse(is_agent());
     }
 
     // ── csrf_token() ────────────────────────────────────────
@@ -154,8 +188,54 @@ class AuthTest extends TestCase
     public function test_verify_csrf_passes_on_get_request(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
-        // Should not throw or die
         verify_csrf();
         $this->assertTrue(true);
     }
+
+    public function test_verify_csrf_passes_on_post_with_valid_token(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SESSION['csrf_token']    = 'valid_token_abc';
+        $_POST['csrf_token']       = 'valid_token_abc';
+        verify_csrf();
+        $this->assertTrue(true);
+    }
+
+    // ── require_login() — happy path (no exit) ──────────────
+
+    public function test_require_login_does_not_exit_when_logged_in(): void
+    {
+        $_SESSION['user_id'] = 1;
+        require_login();
+        $this->assertTrue(true);
+    }
+
+    // ── require_admin() — happy path (no exit) ──────────────
+
+    public function test_require_admin_does_not_exit_when_admin(): void
+    {
+        $_SESSION['user_id'] = 1;
+        $_SESSION['role']    = 'admin';
+        require_admin();
+        $this->assertTrue(true);
+    }
+
+    public function test_require_admin_does_not_exit_when_superadmin(): void
+    {
+        $_SESSION['user_id'] = 1;
+        $_SESSION['role']    = 'superadmin';
+        require_admin();
+        $this->assertTrue(true);
+    }
+
+    // ── require_superadmin() — happy path (no exit) ─────────
+
+    public function test_require_superadmin_does_not_exit_when_superadmin(): void
+    {
+        $_SESSION['user_id'] = 1;
+        $_SESSION['role']    = 'superadmin';
+        require_superadmin();
+        $this->assertTrue(true);
+    }
+
 }

@@ -5,11 +5,11 @@
 
 ## Rôles Scrum
 
-| Rôle          | Membre         | Responsabilités                                                    |
-|---------------|----------------|--------------------------------------------------------------------|
-| Product Owner | [Votre Nom]    | Définir et prioriser le backlog, valider les livrables             |
-| Scrum Master  | [Votre Nom]    | Faciliter les cérémonies Scrum, lever les blocages                 |
-| Developer     | [Votre Nom]    | Implémenter les fonctionnalités, écrire les tests, documenter      |
+| Rôle          | Membre              | Responsabilités                                                    |
+|---------------|---------------------|--------------------------------------------------------------------|
+| Product Owner | Yves Lepa           | Définir et prioriser le backlog, valider les livrables             |
+| Scrum Master  | Yves Lepa           | Faciliter les cérémonies Scrum, lever les blocages                 |
+| Developer     | Yves Lepa           | Implémenter les fonctionnalités, écrire les tests, documenter      |
 
 ---
 
@@ -38,7 +38,7 @@ Une User Story est considérée terminée quand :
 | US08 | Documenter l'architecture Microservices + EDA (UML)                 | 8      | Haute    | 2      |
 | US09 | Configurer le monitoring Prometheus + Grafana                       | 3      | Moyenne  | 2      |
 | US10 | Écrire les playbooks Ansible                                        | 2      | Moyenne  | 2      |
-| US11 | Exposer une REST API pour les départements et employés              | 5      | Moyenne  | 2      |
+| US11 | Implémenter la REST API routes/schedules/cities (route-service)     | 5      | Moyenne  | 2      |
 | US12 | Rédiger la documentation complète (README, User Manual)             | 5      | Moyenne  | 2      |
 
 **Total Story Points** : 58

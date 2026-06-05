@@ -1,0 +1,340 @@
+openapi: 3.0.3
+info:
+  title: Intercity237 API
+  description: |
+    REST API for the Intercity237 bus booking platform (Cameroon).
+
+    The route-service exposes all public endpoints for searching cities,
+    routes, and schedules. All responses are JSON (UTF-8).
+
+    **Base URL:** `http://<host>/api`
+
+    **Authentication:** No authentication required for read-only endpoints.
+    Write operations (booking, payment) are handled directly by the
+    booking-service and require a valid PHP session cookie.
+  version: "1.0.0"
+  contact:
+    name: Intercity237 Support
+    email: support@intercity237.cm
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost/api
+    description: Local development (Docker Compose)
+  - url: http://intercity237.cm/api
+    description: Production
+
+tags:
+  - name: System
+    description: Health and status endpoints
+  - name: Cities
+    description: List of served cities
+  - name: Routes
+    description: Bus lines and pricing
+  - name: Schedules
+    description: Departure timetables with seat availability
+
+paths:
+
+  /health:
+    get:
+      tags: [System]
+      summary: Service health check
+      description: Returns the operational status of the route-service.
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: ok
+                service: route-service
+                timestamp: "2026-06-05T11:00:00+00:00"
+
+  /cities:
+    get:
+      tags: [Cities]
+      summary: List all served cities
+      description: Returns the 10 cities covered by the Intercity237 network.
+      operationId: getCities
+      responses:
+        '200':
+          description: List of cities
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CollectionMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/City'
+              example:
+                service: route-service
+                count: 10
+                data:
+                  - id: 1
+                    name: Douala
+                    region: Littoral
+                  - id: 2
+                    name: Yaoundé
+                    region: Centre
+
+  /routes:
+    get:
+      tags: [Routes]
+      summary: List all bus routes
+      description: Returns all active routes with pricing and travel time.
+      operationId: getRoutes
+      responses:
+        '200':
+          description: List of routes
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CollectionMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Route'
+              example:
+                service: route-service
+                count: 6
+                data:
+                  - id: 1
+                    origin: Douala
+                    destination: Yaoundé
+                    distance_km: 250
+                    duration_min: 210
+                    base_price: "3500.00"
+
+  /schedules:
+    get:
+      tags: [Schedules]
+      summary: Search available departures
+      description: |
+        Returns upcoming scheduled departures with available seats.
+
+        When called without parameters, returns all future departures.
+        Filter by origin, destination, and/or date for a specific search.
+      operationId: getSchedules
+      parameters:
+        - name: origin
+          in: query
+          description: Departure city name (e.g. `Douala`)
+          required: false
+          schema:
+            type: string
+            example: Douala
+        - name: destination
+          in: query
+          description: Arrival city name (e.g. `Yaoundé`)
+          required: false
+          schema:
+            type: string
+            example: Yaoundé
+        - name: date
+          in: query
+          description: Travel date in `YYYY-MM-DD` format
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2026-06-06"
+      responses:
+        '200':
+          description: List of matching schedules
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CollectionMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Schedule'
+              example:
+                service: route-service
+                count: 4
+                data:
+                  - id: 1
+                    departure_at: "2026-06-06 06:00:00"
+                    arrival_at: "2026-06-06 09:30:00"
+                    seats_total: 70
+                    seats_booked: 0
+                    seats_available: 70
+                    base_price: "3500.00"
+                    distance_km: 250
+                    duration_min: 210
+                    origin: Douala
+                    destination: Yaoundé
+                    operator: Général Express
+                    bus_model: King Long XMQ6127
+                    capacity: 70
+
+  /schedules/{id}:
+    get:
+      tags: [Schedules]
+      summary: Get a single schedule by ID
+      description: Returns full details for one specific departure.
+      operationId: getScheduleById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Schedule ID
+          schema:
+            type: integer
+            minimum: 1
+            example: 1
+      responses:
+        '200':
+          description: Schedule found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  service:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ScheduleDetail'
+        '404':
+          description: Schedule not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Schedule not found
+                code: 404
+
+components:
+  schemas:
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+        service:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    CollectionMeta:
+      type: object
+      properties:
+        service:
+          type: string
+          example: route-service
+        count:
+          type: integer
+          example: 10
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: integer
+
+    City:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Douala
+        region:
+          type: string
+          example: Littoral
+
+    Route:
+      type: object
+      properties:
+        id:
+          type: integer
+        origin:
+          type: string
+          example: Douala
+        destination:
+          type: string
+          example: Yaoundé
+        distance_km:
+          type: integer
+          example: 250
+        duration_min:
+          type: integer
+          example: 210
+        base_price:
+          type: string
+          format: decimal
+          example: "3500.00"
+
+    Schedule:
+      type: object
+      properties:
+        id:
+          type: integer
+        departure_at:
+          type: string
+          format: date-time
+          example: "2026-06-06 06:00:00"
+        arrival_at:
+          type: string
+          format: date-time
+          example: "2026-06-06 09:30:00"
+        seats_total:
+          type: integer
+          example: 70
+        seats_booked:
+          type: integer
+          example: 5
+        seats_available:
+          type: integer
+          example: 65
+        base_price:
+          type: string
+          example: "3500.00"
+        distance_km:
+          type: integer
+        duration_min:
+          type: integer
+        origin:
+          type: string
+        destination:
+          type: string
+        operator:
+          type: string
+          example: Général Express
+        bus_model:
+          type: string
+          example: King Long XMQ6127
+        capacity:
+          type: integer
+
+    ScheduleDetail:
+      allOf:
+        - $ref: '#/components/schemas/Schedule'
+        - type: object
+          properties:
+            status:
+              type: string
+              enum: [scheduled, boarding, departed, arrived, cancelled]

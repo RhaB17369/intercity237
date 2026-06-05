@@ -1,143 +1,126 @@
 # Manuel Utilisateur — Intercity237
-## Guide d'utilisation par rôle
+## Plateforme de réservation de bus interurbains — Cameroun
 
 ---
 
-## Accès au portail
+## Accès à la plateforme
 
-**URL** : http://\<votre-domaine\>  
+**URL** : `http://<votre-domaine>` ou `http://localhost` (développement local)  
 **Navigateurs supportés** : Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
 
 ---
 
-## Rôles disponibles
+## Rôles et accès
 
-| Rôle       | Accès                                                             |
-|------------|-------------------------------------------------------------------|
-| Employee   | Consulter ses informations RH, voir son département              |
-| Admin      | Gérer les employés, voir tous les départements, accès admin       |
-| Superadmin | Toutes les fonctionnalités + gestion des administrateurs          |
+| Rôle         | Accès                                                                          |
+|--------------|--------------------------------------------------------------------------------|
+| `passenger`  | Chercher un trajet, réserver, payer, voir ses tickets QR                       |
+| `agent`      | Scanner les tickets QR à l'embarquement (`/scan.php`)                          |
+| `admin`      | Voir les réservations, gérer les passagers, accéder au dashboard admin         |
+| `superadmin` | Toutes les fonctionnalités + gestion des administrateurs                       |
 
-**Compte superadmin par défaut** : `superadmin` / `Admin@1234` (à changer après installation)
-
----
-
-## 1. Connexion
-
-1. Naviguer vers la page d'accueil
-2. Cliquer sur **Login** (coin supérieur droit)
-3. Saisir le nom d'utilisateur et le mot de passe
-4. Cliquer sur **Sign In**
-
-En cas d'oubli du mot de passe : cliquer sur **Forgot Password** et suivre les instructions par email.
+**Compte superadmin par défaut** : `superadmin` / `Admin@1234` *(à changer après installation)*
 
 ---
 
-## 2. Tableau de bord (Home)
+## 1. Recherche d'un trajet
 
-Après connexion, la page d'accueil affiche :
-- Nombre total d'employés
-- Nombre d'administrateurs
-- Nombre de départements
-- Nombre de records RH
-
----
-
-## 3. Gestion des départements (Employee + Admin)
-
-1. Dans la navbar, cliquer sur **Departments**
-2. Sélectionner un département dans la liste déroulante
-3. La page du département affiche tous les records des employés
-
-**Note** : Les employés ne voient que leur propre département. Les admins voient tous les départements.
+1. Naviguer vers la **page d'accueil** (`/`)
+2. Choisir la **ville de départ** et la **ville d'arrivée**
+3. Sélectionner la **date de voyage**
+4. Cliquer **"Rechercher"**
+5. Les résultats affichent les horaires disponibles avec :
+   - Heure de départ / arrivée
+   - Opérateur de bus et modèle du véhicule
+   - Places disponibles
+   - Prix en FCFA
 
 ---
 
-## 4. Panel Admin
+## 2. Réservation et paiement
 
-Accessible uniquement aux rôles `admin` et `superadmin`.
+1. Cliquer **"Réserver"** sur le trajet choisi
+2. Remplir le formulaire :
+   - Nom complet du passager
+   - Numéro de téléphone
+   - Mode de paiement : **MTN Mobile Money** ou **Orange Money**
+   - Numéro de téléphone Mobile Money
+3. Cliquer **"Confirmer et payer"**
 
-### 4.1 Dashboard Admin
-- Vue globale des statistiques
-- Liste des utilisateurs récemment inscrits
+> **Note** : Le paiement réussit automatiquement pour tous les numéros **sauf** ceux commençant par `000`.
 
-### 4.2 Gérer les Employés (Manage Employees)
-1. Cliquer sur **Admin → Manage Employees**
-2. Voir la liste complète de tous les utilisateurs
-3. **Créer** un utilisateur : cliquer sur **+ Add User**
-4. **Modifier** un utilisateur : cliquer sur l'icône crayon
-5. **Supprimer** un utilisateur : cliquer sur l'icône corbeille (confirmation requise)
-
-### 4.3 Database View
-Vue tabulaire de tous les records RH classés par département.
+4. Redirection automatique vers votre **ticket QR**
 
 ---
 
-## 5. Gestion des Admins (Superadmin uniquement)
+## 3. Ticket QR
 
-1. Cliquer sur **Admin → Manage Admins**
-2. Promouvoir un employé en admin : sélectionner et changer le rôle
-3. Révoquer les droits admin : ramener le rôle à `employee`
-
----
-
-## 6. Inscription (Register)
-
-1. Cliquer sur **Register** depuis la page d'accueil
-2. Remplir le formulaire : nom complet, email, username, département, mot de passe
-3. Le mot de passe doit contenir minimum 8 caractères, une majuscule et un chiffre
-4. Cliquer sur **Create Account**
-5. Se connecter avec les identifiants créés
+- Accessible via `/ticket/{référence}` (ex. `ICY-2026-A3B9C1`)
+- Contient : trajet, date, heure de départ, opérateur, QR code
+- **Présentez ce QR à l'agent lors de l'embarquement**
 
 ---
 
-## 7. API REST (Intégration technique)
+## 4. Scan du ticket à l'embarquement (Agents)
 
-Le `route-service` expose une API REST JSON.
+1. Naviguer vers `/scan.php`
+2. Saisir le token QR ou scanner avec un lecteur
+3. Résultats possibles :
+   - ✅ **VALIDE** — passager autorisé, ticket marqué comme utilisé
+   - ❌ **DÉJÀ SCANNÉ** — ticket déjà utilisé, refuser
+   - ❌ **INVALIDE** — token inconnu, refuser
 
-**Base URL** : `http://<domaine>/api.php`
+---
 
-| Méthode | Endpoint                   | Description                        | Auth |
-|---------|----------------------------|------------------------------------|------|
-| GET     | `/api.php/health`          | Santé du service                   | Non  |
-| GET     | `/api.php/departments`     | Liste des départements             | Non  |
-| GET     | `/api.php/departments/stats` | Statistiques par département     | Non  |
-| GET     | `/api.php/employees`       | Liste des employés (max 100)       | Non  |
-| POST    | `/api.php/employees`       | Créer un record employé            | Non  |
+## 5. Dashboard Admin (`/admin/`)
 
-**Exemple de requête** :
+Accessible aux rôles `admin` et `superadmin` :
+
+| Page | URL | Description |
+|------|-----|-------------|
+| Dashboard | `/admin/` | Stats temps réel : réservations, revenus, départs du jour |
+| Passagers | `/admin/users.php` | Liste des voyageurs avec nombre de réservations |
+| Admins | `/admin/admins.php` | Gestion des comptes admin (superadmin uniquement) |
+| API Routes | `/api/routes` | Toutes les lignes JSON |
+| Scanner | `/scan.php` | Validation des tickets |
+
+---
+
+## 6. REST API (route-service)
+
+| Méthode | Endpoint | Description |
+|---------|----------|-------------|
+| `GET` | `/api/health` | Statut du service |
+| `GET` | `/api/cities` | 10 villes desservies |
+| `GET` | `/api/routes` | Lignes avec tarifs et durées |
+| `GET` | `/api/schedules` | Prochains départs |
+| `GET` | `/api/schedules?origin=Douala&destination=Yaoundé&date=YYYY-MM-DD` | Recherche filtrée |
+| `GET` | `/api/schedules/{id}` | Détail d'un horaire |
+
+Voir `docs/openapi.yaml` pour la spécification Swagger complète.
+
+---
+
+## 7. Inscription d'un passager
+
+1. Aller sur `/register.php`
+2. Remplir : Nom complet, Email, Téléphone, Nom d'utilisateur, Mot de passe
+3. Mot de passe requis : ≥8 caractères, majuscule, minuscule, chiffre
+4. Cliquer **"Créer mon compte"** — connexion automatique
+
+---
+
+## 8. Installation rapide (développeurs)
+
 ```bash
-curl http://<domaine>/api.php/departments/stats
-```
-
-**Exemple de réponse** :
-```json
-{
-  "service": "route-service",
-  "total_employees": 42,
-  "departments": 10,
-  "data": [
-    {
-      "id": "1",
-      "name": "Production",
-      "total_records": "12",
-      "active": "10",
-      "on_leave": "1",
-      "suspended": "0",
-      "resigned": "1"
-    }
-  ]
-}
+git clone https://github.com/RhaB17369/intercity237.git && cd intercity237
+docker-compose up -d --build
+# Application : http://localhost
+# Prometheus  : http://localhost:9090
+# Grafana     : http://localhost:3000  (admin / admin123)
+# RabbitMQ UI : http://localhost:15672 (guest / guest)
 ```
 
 ---
 
-## 8. Résolution des problèmes courants
-
-| Problème                        | Solution                                                      |
-|---------------------------------|---------------------------------------------------------------|
-| "Database unavailable"          | Vérifier que le conteneur MariaDB est en état `Up`            |
-| Page blanche après login        | Effacer les cookies et sessions du navigateur                 |
-| "Access denied"                 | Votre rôle ne permet pas cette action — contacter un admin    |
-| Mot de passe oublié             | Utiliser Forgot Password depuis la page de connexion          |
-| Application inaccessible        | Vérifier `docker-compose ps` ou `kubectl get pods -n intercity237`|
+*SEN3244 Software Architecture — Engr. TEKOH PALMA — The ICT University — Spring 2026*

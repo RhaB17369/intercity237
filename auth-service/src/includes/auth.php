@@ -36,6 +36,14 @@ function is_superadmin(): bool {
     return ($_SESSION['role'] ?? '') === 'superadmin';
 }
 
+function is_passenger(): bool {
+    return ($_SESSION['role'] ?? '') === 'passenger';
+}
+
+function is_agent(): bool {
+    return ($_SESSION['role'] ?? '') === 'agent';
+}
+
 function h(string $s): string {
     return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
 }

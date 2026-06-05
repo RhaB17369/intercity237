@@ -7,18 +7,23 @@
          failOnRisky="false">
 
     <testsuites>
-        <testsuite name="Unit">
-            <directory>tests/Unit</directory>
+        <testsuite name="Intercity237">
+            <directory>tests/</directory>
         </testsuite>
     </testsuites>
 
-    <coverage>
+    <!-- PHPUnit 11: source element for coverage (replaces coverage/include) -->
+    <source>
         <include>
             <file>src/includes/auth.php</file>
+            <file>src/includes/helpers.php</file>
         </include>
+    </source>
+
+    <coverage>
         <report>
             <html outputDirectory="coverage"/>
-            <text outputFile="php://stdout" showUncoveredFiles="false"/>
+            <text outputFile="php://stdout" showUncoveredFiles="true"/>
         </report>
     </coverage>
 

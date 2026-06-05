@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_superadmin(); // ONLY superadmin can access this page
 
-
+$departments = get_departments($pdo);
 $msg = '';
 $msg_type = 'success';
 
@@ -61,7 +61,7 @@ include __DIR__ . '/../includes/header.php';
                 Super Admin access only — <?= count($admins) ?> admin<?= count($admins) != 1 ? 's' : '' ?> total
             </p>
         </div>
-        <button class="btn btn-i237" data-bs-toggle="modal" data-bs-target="#createAdminModal">
+        <button class="btn btn-cim" data-bs-toggle="modal" data-bs-target="#createAdminModal">
             <i class="bi bi-person-badge-fill me-2"></i>Add Admin
         </button>
     </div>
@@ -77,7 +77,7 @@ include __DIR__ . '/../includes/header.php';
     </div>
     <?php endif; ?>
 
-    <div class="i237-table-wrap">
+    <div class="cim-table-wrapper">
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead>
@@ -127,7 +127,7 @@ include __DIR__ . '/../includes/header.php';
 <div class="modal fade" id="createAdminModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header modal-header">
+            <div class="modal-header cim-modal-header">
                 <h5 class="modal-title fw-bold"><i class="bi bi-person-badge-fill me-2"></i>Create Admin Account</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>

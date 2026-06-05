@@ -1,7 +1,7 @@
 <?php
 // Bootstrap pour les tests PHPUnit — évite l'initialisation PDO
 define('BASE_URL',  '');
-define('SITE_NAME', 'Intercity237 HR Portal Test');
+define('SITE_NAME', 'Intercity237 Test');
 define('APP_URL',   'http://localhost');
 define('MAIL_FROM', 'test@intercity237.cm');
 

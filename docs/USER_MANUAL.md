@@ -1,4 +1,4 @@
-# Manuel Utilisateur — Intercity237 HR Portal
+# Manuel Utilisateur — Intercity237
 ## Guide d'utilisation par rôle
 
 ---
@@ -93,7 +93,7 @@ Vue tabulaire de tous les records RH classés par département.
 
 ## 7. API REST (Intégration technique)
 
-Le `dept-service` expose une API REST JSON.
+Le `route-service` expose une API REST JSON.
 
 **Base URL** : `http://<domaine>/api.php`
 
@@ -113,7 +113,7 @@ curl http://<domaine>/api.php/departments/stats
 **Exemple de réponse** :
 ```json
 {
-  "service": "dept-service",
+  "service": "route-service",
   "total_employees": 42,
   "departments": 10,
   "data": [

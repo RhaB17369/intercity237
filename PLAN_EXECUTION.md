@@ -1,5 +1,5 @@
 # PLAN D'EXÉCUTION — 48H CHRONO
-## SEN3244 Software Architecture — Intercity237 HR Portal
+## SEN3244 Software Architecture — Intercity237
 ### Architecture : Microservices + Event-Driven (EDA)
 
 ---
@@ -8,7 +8,7 @@
 |----------------|-----------------------------------------------------------|
 | Cours          | Software Architecture — SEN3244                          |
 | Instructeur    | Engr. TEKOH PALMA                                        |
-| Projet         | Intercity237 HR Portal (PHP 8.2 + MariaDB)                   |
+| Projet         | Intercity237 (PHP 8.2 + MariaDB)                   |
 | Architecture   | **Microservices + Event-Driven Architecture (RabbitMQ)** |
 | Deadline       | J+2 — 1ère semaine après examens écrits Spring 2026      |
 | Total points   | 105 pts répartis sur 10 sections                         |
@@ -38,7 +38,7 @@
                         └──┬──────┬──────┬──────────┘
                            │      │      │
                ┌───────────▼─┐  ┌─▼──────▼──┐  ┌──────────────┐
-               │ auth-service│  │user-service│  │ dept-service │
+               │ auth-service│  │passenger-service│  │ route-service │
                │   :8001     │  │   :8002    │  │   :8003      │
                │ JWT + RBAC  │  │  CRUD RH   │  │ Departments  │
                └──────┬──────┘  └─────┬──────┘  └──────┬───────┘
@@ -62,15 +62,15 @@
 |---------------------------------|---------------|-----------------------|
 | `user.registered`               | auth-service  | notification-service  |
 | `user.password_reset_requested` | auth-service  | notification-service  |
-| `user.role.changed`             | user-service  | auth-service          |
-| `department.record.created`     | dept-service  | notification-service  |
+| `user.role.changed`             | passenger-service  | auth-service          |
+| `department.record.created`     | route-service  | notification-service  |
 
 ---
 
 ## STRUCTURE DE DOSSIERS CIBLE
 
 ```
-intercity237-hr-portal/
+intercity237/
 ├── api-gateway/
 │   ├── nginx.conf
 │   └── Dockerfile
@@ -78,11 +78,11 @@ intercity237-hr-portal/
 │   ├── src/          ← login.php, register.php, includes/auth.php
 │   ├── tests/
 │   └── Dockerfile
-├── user-service/
+├── passenger-service/
 │   ├── src/          ← admin/users.php, admin/admins.php
 │   ├── tests/
 │   └── Dockerfile
-├── dept-service/
+├── route-service/
 │   ├── src/          ← department.php, admin/database.php
 │   ├── tests/
 │   └── Dockerfile
@@ -116,8 +116,8 @@ cp config/db.php config/db.example.php
 
 # Push sur GitHub
 git add .
-git commit -m "Initial commit - Intercity237 HR Portal"
-git remote add origin https://github.com/<username>/intercity237-hr-portal.git
+git commit -m "Initial commit - Intercity237"
+git remote add origin https://github.com/<username>/intercity237.git
 git push -u origin main
 ```
 
@@ -132,15 +132,15 @@ git push -u origin main
 
 ```bash
 mkdir -p auth-service/src auth-service/tests
-mkdir -p user-service/src user-service/tests
-mkdir -p dept-service/src dept-service/tests
+mkdir -p passenger-service/src passenger-service/tests
+mkdir -p route-service/src route-service/tests
 mkdir -p notification-service/src
 mkdir -p api-gateway
 
 # Déplacer les fichiers PHP dans les services
 cp login.php register.php logout.php forgot_password.php reset_password.php includes/auth.php auth-service/src/
-cp admin/users.php admin/admins.php user-service/src/
-cp department.php admin/database.php dept-service/src/
+cp admin/users.php admin/admins.php passenger-service/src/
+cp department.php admin/database.php route-service/src/
 cp -r config/ includes/ css/ js/ auth-service/src/
 ```
 
@@ -157,7 +157,7 @@ RUN chown -R www-data:www-data /var/www/html
 EXPOSE 80
 ```
 
-> Répéter le même Dockerfile pour `user-service`, `dept-service`.
+> Répéter le même Dockerfile pour `passenger-service`, `route-service`.
 
 `notification-service/Dockerfile` :
 
@@ -184,8 +184,8 @@ services:
       - ./api-gateway/nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - auth-service
-      - user-service
-      - dept-service
+      - passenger-service
+      - route-service
     networks: [intercity237-net]
 
   auth-service:
@@ -203,8 +203,8 @@ services:
         condition: service_healthy
     networks: [intercity237-net]
 
-  user-service:
-    build: ./user-service
+  passenger-service:
+    build: ./passenger-service
     environment:
       DB_HOST: db-users
       DB_NAME: intercity237_users
@@ -216,8 +216,8 @@ services:
       - rabbitmq
     networks: [intercity237-net]
 
-  dept-service:
-    build: ./dept-service
+  route-service:
+    build: ./route-service
     environment:
       DB_HOST: db-dept
       DB_NAME: intercity237_dept
@@ -310,12 +310,12 @@ server {
     }
 
     location /users/ {
-        proxy_pass http://user-service/;
+        proxy_pass http://passenger-service/;
         proxy_set_header Host $host;
     }
 
     location /departments/ {
-        proxy_pass http://dept-service/;
+        proxy_pass http://route-service/;
         proxy_set_header Host $host;
     }
 
@@ -359,8 +359,8 @@ k8s/
 ├── namespace.yaml
 ├── rabbitmq-deployment.yaml
 ├── auth-service-deployment.yaml
-├── user-service-deployment.yaml
-├── dept-service-deployment.yaml
+├── passenger-service-deployment.yaml
+├── route-service-deployment.yaml
 ├── notification-service-deployment.yaml
 └── api-gateway-deployment.yaml
 ```
@@ -426,7 +426,7 @@ spec:
     targetPort: 80
 ```
 
-> Répliquer ce pattern pour `user-service` et `dept-service`.
+> Répliquer ce pattern pour `passenger-service` et `route-service`.
 
 **`k8s/rabbitmq-deployment.yaml` :**
 
@@ -508,7 +508,7 @@ pipeline {
     environment {
         REGISTRY   = 'ghcr.io'
         NAMESPACE  = 'intercity237'
-        SERVICES   = 'auth-service user-service dept-service notification-service'
+        SERVICES   = 'auth-service passenger-service route-service notification-service'
     }
 
     stages {
@@ -642,7 +642,7 @@ Browser → API Gateway → auth-service → db-auth → JWT token → Browser
 
 - Déploiement indépendant de chaque service
 - Résilience par isolation des pannes
-- Scalabilité ciblée (ex: dept-service peut avoir 10 répliques si forte charge)
+- Scalabilité ciblée (ex: route-service peut avoir 10 répliques si forte charge)
 - Technologies différentes possibles par service dans le futur
 
 **Cons de l'architecture :**
@@ -875,7 +875,7 @@ ansible/
   tasks:
     - name: Cloner le dépôt
       git:
-        repo: https://github.com/<username>/intercity237-hr-portal.git
+        repo: https://github.com/<username>/intercity237.git
         dest: "{{ app_dir }}"
         version: main
         force: yes
@@ -943,7 +943,7 @@ Créer les burndown charts dans Google Sheets ou Excel et exporter en PNG.
 
 ### H26–H27 : Innovation — REST API (Section 9 — 10 pts)
 
-Créer `dept-service/src/api.php` :
+Créer `route-service/src/api.php` :
 
 ```php
 <?php
@@ -993,7 +993,7 @@ L'innovation réside dans deux aspects :
 
 1. **Architecture Event-Driven** : L'utilisation de RabbitMQ comme broker d'événements découple totalement les services. Le `notification-service` réagit aux événements métier sans que les autres services aient connaissance de son existence — c'est le pattern **Publisher/Subscriber** appliqué à un contexte RH.
 
-2. **REST API exposée** : Le `dept-service` expose une API REST JSON consommable par des clients tiers (mobile app, BI tool), rendant le système interopérable et extensible.
+2. **REST API exposée** : Le `route-service` expose une API REST JSON consommable par des clients tiers (mobile app, BI tool), rendant le système interopérable et extensible.
 
 **Screenshots à prendre :**
 - [ ] Réponse API `GET /departments/stats` dans Postman ou curl
@@ -1006,7 +1006,7 @@ L'innovation réside dans deux aspects :
 **`README.md` :**
 
 ```markdown
-# Intercity237 HR Portal — Microservices Edition
+# Intercity237 — Microservices Edition
 
 ## Problème résolu
 Gestion numérique centralisée des RH de Intercity237 avec une architecture
@@ -1021,14 +1021,14 @@ orchestrés par Kubernetes (k3s).
 |-----------------------|-------|--------------------------|
 | api-gateway           | 80    | Routage + Auth           |
 | auth-service          | 8001  | JWT + RBAC               |
-| user-service          | 8002  | CRUD employés            |
-| dept-service          | 8003  | Gestion départements     |
+| passenger-service          | 8002  | CRUD employés            |
+| route-service          | 8003  | Gestion départements     |
 | notification-service  | 8004  | Emails (event consumer)  |
 | rabbitmq              | 15672 | Message broker           |
 
 ## Lancement local
-git clone https://github.com/<username>/intercity237-hr-portal.git
-cd intercity237-hr-portal
+git clone https://github.com/<username>/intercity237.git
+cd intercity237
 docker-compose up -d --build
 # Application : http://localhost
 # RabbitMQ UI : http://localhost:15672
@@ -1157,7 +1157,7 @@ Exporter une collection Postman avec les 3 endpoints REST.
 - [ ] `auth-service/tests/Unit/AuthTest.php`
 - [ ] `phpunit.xml`
 - [ ] `composer.json`
-- [ ] `dept-service/src/api.php` (REST endpoints)
+- [ ] `route-service/src/api.php` (REST endpoints)
 - [ ] `api-gateway/nginx.conf`
 - [ ] `monitoring/prometheus.yml`
 
@@ -1221,4 +1221,4 @@ Sacrifier en premier  →  Section 2  (5 pts — scrum rétroactif)
 
 ---
 
-*Document généré le 04 juin 2026 — Intercity237 HR Portal — SEN3244 Spring 2026 — Plan 48H*
+*Document généré le 04 juin 2026 — Intercity237 — SEN3244 Spring 2026 — Plan 48H*

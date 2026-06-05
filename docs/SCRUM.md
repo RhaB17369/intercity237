@@ -1,4 +1,4 @@
-# Application de Scrum — Intercity237 HR Portal
+# Application de Scrum — Intercity237
 ## SEN3244 Software Architecture — Spring 2026
 
 ---
@@ -56,8 +56,8 @@ Une User Story est considérée terminée quand :
 | US01 | Provisionner le VPS (Hetzner/Oracle)           | Dev     | Terminé | 3      |
 | US01 | Configurer Nginx reverse proxy                 | Dev     | Terminé | -      |
 | US02 | Créer Dockerfile auth-service                  | Dev     | Terminé | 5      |
-| US02 | Créer Dockerfile user-service                  | Dev     | Terminé | -      |
-| US02 | Créer Dockerfile dept-service                  | Dev     | Terminé | -      |
+| US02 | Créer Dockerfile passenger-service                  | Dev     | Terminé | -      |
+| US02 | Créer Dockerfile route-service                  | Dev     | Terminé | -      |
 | US02 | Créer Dockerfile notification-service          | Dev     | Terminé | -      |
 | US03 | Créer api-gateway/nginx.conf                   | Dev     | Terminé | 3      |
 | US04 | Configurer RabbitMQ dans docker-compose        | Dev     | Terminé | 3      |

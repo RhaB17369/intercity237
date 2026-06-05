@@ -42,14 +42,14 @@ include __DIR__ . '/includes/header.php';
 ?>
 
 <div class="min-vh-75 d-flex align-items-center justify-content-center py-5" style="min-height:70vh">
-    <div class="i237-auth-card mx-3">
-        <div class="i237-auth-header">
+    <div class="cim-auth-card mx-3">
+        <div class="cim-auth-header">
             <i class="bi bi-shield-lock-fill text-warning" style="font-size:2.5rem"></i>
             <h4 class="text-white fw-bold mt-2 mb-0">Set New Password</h4>
             <p class="text-white-50 small mb-0">Choose a strong password</p>
         </div>
 
-        <div class="i237-auth-body">
+        <div class="cim-auth-body">
             <?php if ($error): ?>
             <div class="alert alert-danger"><?= $error ?></div>
             <?php endif; ?>
@@ -82,7 +82,7 @@ include __DIR__ . '/includes/header.php';
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-i237 w-100 py-2">
+                <button type="submit" class="btn btn-cim w-100 py-2">
                     <i class="bi bi-check-circle-fill me-2"></i>Update Password
                 </button>
             </form>

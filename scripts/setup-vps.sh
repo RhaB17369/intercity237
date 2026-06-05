@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================
-# Intercity237 HR Portal — VPS Setup Script
+# Intercity237 — VPS Setup Script
 # Usage: bash setup-vps.sh
 # ============================================================
 

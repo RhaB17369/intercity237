@@ -90,7 +90,7 @@ function handle_user_registered(array $data): void {
     $email = $data['email'] ?? 'unknown';
     $name  = $data['full_name'] ?? 'User';
     echo "[notification-service] SEND welcome email to {$email} for user '{$name}'\n";
-    // mail($email, "Welcome to Intercity237 HR Portal", "...");
+    // mail($email, "Welcome to Intercity237", "...");
 }
 
 function handle_password_reset(array $data): void {

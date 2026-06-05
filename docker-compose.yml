@@ -1,8 +1,8 @@
 version: '3.9'
 
 # ============================================================
-# Intercity237 HR Portal — Microservices + Event-Driven Stack
-# Architecture: API Gateway → 4 Services → RabbitMQ
+# Intercity237 — Plateforme de réservation de bus
+# Microservices + Event-Driven Architecture
 # ============================================================
 
 services:
@@ -15,9 +15,11 @@ services:
       - "80:80"
     depends_on:
       - auth-service
-      - user-service
-      - dept-service
-    networks: [intercity237-net]
+      - passenger-service
+      - route-service
+      - booking-service
+      - ticket-service
+    networks: [i237-net]
     restart: unless-stopped
 
   # ── Auth Service ───────────────────────────────────────────
@@ -28,10 +30,10 @@ services:
       DB_HOST: db
       DB_NAME: intercity237
       DB_USER: intercity237
-      DB_PASS: Intercity2372026
-      APP_URL: http://localhost
+      DB_PASS: "Intercity237!"
+      APP_URL: "http://localhost"
       BASE_URL: ""
-      SITE_NAME: "Intercity237 HR Portal"
+      SITE_NAME: "Intercity237"
       MAIL_FROM: noreply@intercity237.cm
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: "5672"
@@ -42,21 +44,21 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    networks: [intercity237-net]
+    networks: [i237-net]
     restart: unless-stopped
 
-  # ── User Service ───────────────────────────────────────────
-  user-service:
-    build: ./user-service
-    container_name: intercity237-users
+  # ── Passenger Service ──────────────────────────────────────
+  passenger-service:
+    build: ./passenger-service
+    container_name: intercity237-passengers
     environment:
       DB_HOST: db
       DB_NAME: intercity237
       DB_USER: intercity237
-      DB_PASS: Intercity2372026
-      APP_URL: http://localhost
+      DB_PASS: "Intercity237!"
+      APP_URL: "http://localhost"
       BASE_URL: ""
-      SITE_NAME: "Intercity237 HR Portal"
+      SITE_NAME: "Intercity237"
       MAIL_FROM: noreply@intercity237.cm
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: "5672"
@@ -67,22 +69,44 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    networks: [intercity237-net]
+    networks: [i237-net]
     restart: unless-stopped
 
-  # ── Dept Service ───────────────────────────────────────────
-  dept-service:
-    build: ./dept-service
-    container_name: intercity237-dept
+  # ── Route Service ──────────────────────────────────────────
+  route-service:
+    build: ./route-service
+    container_name: intercity237-routes
     environment:
       DB_HOST: db
       DB_NAME: intercity237
       DB_USER: intercity237
-      DB_PASS: Intercity2372026
-      APP_URL: http://localhost
+      DB_PASS: "Intercity237!"
+      APP_URL: "http://localhost"
       BASE_URL: ""
-      SITE_NAME: "Intercity237 HR Portal"
+      SITE_NAME: "Intercity237"
       MAIL_FROM: noreply@intercity237.cm
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [i237-net]
+    restart: unless-stopped
+
+  # ── Booking Service ────────────────────────────────────────
+  booking-service:
+    build: ./booking-service
+    container_name: intercity237-booking
+    environment:
+      DB_HOST: db
+      DB_NAME: intercity237
+      DB_USER: intercity237
+      DB_PASS: "Intercity237!"
+      APP_URL: "http://localhost"
+      BASE_URL: ""
+      SITE_NAME: "Intercity237"
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: "5672"
       RABBITMQ_USER: guest
@@ -92,7 +116,23 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    networks: [intercity237-net]
+    networks: [i237-net]
+    restart: unless-stopped
+
+  # ── Ticket Service ─────────────────────────────────────────
+  ticket-service:
+    build: ./ticket-service
+    container_name: intercity237-tickets
+    environment:
+      DB_HOST: db
+      DB_NAME: intercity237
+      DB_USER: intercity237
+      DB_PASS: "Intercity237!"
+      APP_URL: "http://localhost"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [i237-net]
     restart: unless-stopped
 
   # ── Notification Service (Event Consumer) ─────────────────
@@ -107,7 +147,7 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-    networks: [intercity237-net]
+    networks: [i237-net]
     restart: unless-stopped
 
   # ── RabbitMQ (Message Broker) ─────────────────────────────
@@ -127,7 +167,7 @@ services:
       interval: 15s
       timeout: 10s
       retries: 5
-    networks: [intercity237-net]
+    networks: [i237-net]
     restart: unless-stopped
 
   # ── MariaDB ────────────────────────────────────────────────
@@ -137,7 +177,7 @@ services:
     environment:
       MYSQL_DATABASE: intercity237
       MYSQL_USER: intercity237
-      MYSQL_PASSWORD: Intercity2372026
+      MYSQL_PASSWORD: "Intercity237!"
       MYSQL_ROOT_PASSWORD: rootpassword
     volumes:
       - db_data:/var/lib/mysql
@@ -147,7 +187,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-    networks: [intercity237-net]
+    networks: [i237-net]
     restart: unless-stopped
 
   # ── Prometheus ─────────────────────────────────────────────
@@ -162,7 +202,7 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.retention.time=15d'
-    networks: [intercity237-net]
+    networks: [i237-net]
     restart: unless-stopped
 
   # ── Node Exporter ──────────────────────────────────────────
@@ -175,7 +215,7 @@ services:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /:/rootfs:ro
-    networks: [intercity237-net]
+    networks: [i237-net]
     restart: unless-stopped
 
   # ── Grafana ────────────────────────────────────────────────
@@ -192,7 +232,7 @@ services:
       - grafana_data:/var/lib/grafana
     depends_on:
       - prometheus
-    networks: [intercity237-net]
+    networks: [i237-net]
     restart: unless-stopped
 
 volumes:
@@ -202,7 +242,7 @@ volumes:
   grafana_data:
 
 networks:
-  intercity237-net:
+  i237-net:
     driver: bridge
     ipam:
       config:

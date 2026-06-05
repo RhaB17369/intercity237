@@ -51,9 +51,9 @@ $page_title = 'Forgot Password';
 include __DIR__ . '/includes/header.php';
 ?>
 
-<div class="i237-auth-wrap">
-    <div class="i237-auth-card">
-        <div class="i237-auth-header">
+<div class="cim-auth-wrap">
+    <div class="cim-auth-card">
+        <div class="cim-auth-header">
             <div class="auth-icon-ring">
                 <i class="bi bi-key-fill text-warning" style="font-size:1.8rem"></i>
             </div>
@@ -61,7 +61,7 @@ include __DIR__ . '/includes/header.php';
             <p class="text-white-50 small mb-0">Enter your email to receive a reset link</p>
         </div>
 
-        <div class="i237-auth-body">
+        <div class="cim-auth-body">
             <?php if ($message): ?>
             <div class="alert alert-<?= $type ?> auto-dismiss">
                 <i class="bi bi-<?= $type === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill' ?> me-2"></i>
@@ -89,7 +89,7 @@ include __DIR__ . '/includes/header.php';
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-i237 w-100 py-2">
+                <button type="submit" class="btn btn-cim w-100 py-2">
                     <i class="bi bi-send-fill me-2"></i>Send Reset Link
                 </button>
             </form>
@@ -97,7 +97,7 @@ include __DIR__ . '/includes/header.php';
             <hr class="my-4">
             <p class="text-center text-muted mb-0 small">
                 Remember your password?
-                <a href="<?= BASE_URL ?>/login.php" class="text-green fw-semibold text-decoration-none">Login</a>
+                <a href="<?= BASE_URL ?>/login.php" class="text-cim-orange fw-semibold text-decoration-none">Login</a>
             </p>
         </div>
     </div>

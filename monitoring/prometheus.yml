@@ -2,7 +2,7 @@ global:
   scrape_interval:     15s
   evaluation_interval: 15s
   external_labels:
-    monitor: 'intercity237-hr-portal'
+    monitor: 'intercity237'
 
 rule_files: []
 
@@ -31,14 +31,14 @@ scrape_configs:
       auto: ['']
 
   # User Service
-  - job_name: 'user-service'
+  - job_name: 'passenger-service'
     static_configs:
-      - targets: ['user-service:80']
+      - targets: ['passenger-service:80']
 
   # Dept Service
-  - job_name: 'dept-service'
+  - job_name: 'route-service'
     static_configs:
-      - targets: ['dept-service:80']
+      - targets: ['route-service:80']
 
   # Prometheus self-monitoring
   - job_name: 'prometheus'

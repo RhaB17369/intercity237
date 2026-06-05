@@ -81,16 +81,16 @@ function routes_list(PDO $pdo): void
 
 function schedules_list(PDO $pdo): void
 {
-    $origin = (int)($_GET['origin'] ?? 0);
-    $dest   = (int)($_GET['destination'] ?? 0);
-    $date   = $_GET['date'] ?? date('Y-m-d');
+    $origin = $_GET['origin'] ?? '';
+    $dest   = $_GET['destination'] ?? '';
+    $date   = $_GET['date'] ?? '';
 
-    $where  = "s.status IN ('scheduled','boarding') AND (s.seats_total - s.seats_booked) > 0";
+    $where  = "s.status IN ('scheduled','boarding') AND (s.seats_total - s.seats_booked) > 0 AND s.departure_at > NOW()";
     $params = [];
 
-    if ($origin)  { $where .= " AND r.origin_id = :origin";      $params[':origin'] = $origin; }
-    if ($dest)    { $where .= " AND r.destination_id = :dest";   $params[':dest']   = $dest; }
-    if ($date)    { $where .= " AND DATE(s.departure_at) = :date"; $params[':date']  = $date; }
+    if ($origin) { $where .= " AND c1.name = :origin"; $params[':origin'] = $origin; }
+    if ($dest)   { $where .= " AND c2.name = :dest";   $params[':dest']   = $dest; }
+    if ($date)   { $where .= " AND DATE(s.departure_at) = :date"; $params[':date'] = $date; }
 
     $stmt = $pdo->prepare("
         SELECT s.id, s.departure_at, s.arrival_at,

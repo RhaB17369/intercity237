@@ -159,5 +159,36 @@ CREATE TABLE IF NOT EXISTS `tickets` (
     FOREIGN KEY (`scanned_by`) REFERENCES `users`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- Superadmin par défaut: superadmin / Admin@1234
--- (hash généré par setup.php)
+-- -----------------------------------------------------------
+-- Données de démonstration
+-- -----------------------------------------------------------
+
+-- Buses
+INSERT INTO `buses` (`operator_id`, `plate`, `model`, `capacity`) VALUES
+(1, 'LT-2024-A1', 'King Long XMQ6127', 70),
+(1, 'LT-2024-A2', 'King Long XMQ6127', 70),
+(2, 'LT-2024-B1', 'Yutong ZK6122', 65),
+(2, 'LT-2024-B2', 'Yutong ZK6122', 65),
+(3, 'LT-2024-C1', 'Higer KLQ6119', 60),
+(4, 'LT-2024-D1', 'Daewoo BH090', 55);
+
+-- Horaires (14 départs sur les 3 prochains jours)
+INSERT INTO `schedules` (`route_id`, `bus_id`, `departure_at`, `arrival_at`, `seats_total`, `seats_booked`, `status`) VALUES
+(1, 1, DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 1 DAY), '%Y-%m-%d 06:00:00'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 1 DAY), '%Y-%m-%d 09:30:00'), 70, 0, 'scheduled'),
+(1, 2, DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 1 DAY), '%Y-%m-%d 10:00:00'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 1 DAY), '%Y-%m-%d 13:30:00'), 70, 5, 'scheduled'),
+(1, 1, DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 2 DAY), '%Y-%m-%d 06:00:00'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 2 DAY), '%Y-%m-%d 09:30:00'), 70, 0, 'scheduled'),
+(1, 2, DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 3 DAY), '%Y-%m-%d 07:00:00'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 3 DAY), '%Y-%m-%d 10:30:00'), 70, 12, 'scheduled'),
+(2, 3, DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 1 DAY), '%Y-%m-%d 07:00:00'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 1 DAY), '%Y-%m-%d 10:30:00'), 65, 3, 'scheduled'),
+(2, 3, DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 2 DAY), '%Y-%m-%d 08:00:00'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 2 DAY), '%Y-%m-%d 11:30:00'), 65, 0, 'scheduled'),
+(3, 4, DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 1 DAY), '%Y-%m-%d 05:30:00'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 1 DAY), '%Y-%m-%d 10:00:00'), 65, 8, 'scheduled'),
+(3, 5, DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 2 DAY), '%Y-%m-%d 06:00:00'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 2 DAY), '%Y-%m-%d 10:30:00'), 60, 0, 'scheduled'),
+(4, 4, DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 1 DAY), '%Y-%m-%d 08:00:00'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 1 DAY), '%Y-%m-%d 11:00:00'), 65, 0, 'scheduled'),
+(4, 5, DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 2 DAY), '%Y-%m-%d 09:00:00'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 2 DAY), '%Y-%m-%d 12:00:00'), 60, 15, 'scheduled'),
+(5, 6, DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 1 DAY), '%Y-%m-%d 05:00:00'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 1 DAY), '%Y-%m-%d 10:30:00'), 55, 0, 'scheduled'),
+(5, 6, DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 3 DAY), '%Y-%m-%d 05:00:00'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 3 DAY), '%Y-%m-%d 10:30:00'), 55, 2, 'scheduled'),
+(6, 2, DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 1 DAY), '%Y-%m-%d 20:00:00'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 2 DAY), '%Y-%m-%d 04:00:00'), 70, 0, 'scheduled'),
+(6, 2, DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 2 DAY), '%Y-%m-%d 20:00:00'), DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 3 DAY), '%Y-%m-%d 04:00:00'), 70, 6, 'scheduled');
+
+-- Superadmin (login: superadmin / Admin@1234)
+INSERT IGNORE INTO `users` (`full_name`, `email`, `username`, `password`, `role`, `phone`) VALUES
+('Super Administrateur', 'superadmin@intercity237.cm', 'superadmin', '$2y$10$vkkFUoWW0OE485tYTIaM7OYZ0xdqMhGpNDE.CA4a8yrJGcDRZFGNS', 'superadmin', '+237 650 000 001');

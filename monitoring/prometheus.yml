@@ -22,23 +22,11 @@ scrape_configs:
     static_configs:
       - targets: ['rabbitmq:15692']
 
-  # Auth Service — métriques applicatives Apache
-  - job_name: 'auth-service'
+  # API Gateway — health endpoint Nginx
+  - job_name: 'api-gateway'
     static_configs:
-      - targets: ['auth-service:80']
-    metrics_path: '/server-status'
-    params:
-      auto: ['']
-
-  # User Service
-  - job_name: 'passenger-service'
-    static_configs:
-      - targets: ['passenger-service:80']
-
-  # Dept Service
-  - job_name: 'route-service'
-    static_configs:
-      - targets: ['route-service:80']
+      - targets: ['api-gateway:80']
+    metrics_path: '/health'
 
   # Prometheus self-monitoring
   - job_name: 'prometheus'

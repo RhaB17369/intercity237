@@ -9,5 +9,4 @@ RUN chown -R www-data:www-data /var/www/html
 
 EXPOSE 80
 
-HEALTHCHECK --interval=30s --timeout=5s \
-  CMD curl -f http://localhost/ || exit 1
+HEALTHCHECK --interval=30s --timeout=5s CMD curl -f "http://localhost/api.php?path=health" || exit 1

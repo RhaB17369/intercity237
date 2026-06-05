@@ -1,0 +1,209 @@
+version: '3.9'
+
+# ============================================================
+# Intercity237 HR Portal — Microservices + Event-Driven Stack
+# Architecture: API Gateway → 4 Services → RabbitMQ
+# ============================================================
+
+services:
+
+  # ── API Gateway (Nginx) ────────────────────────────────────
+  api-gateway:
+    build: ./api-gateway
+    container_name: intercity237-gateway
+    ports:
+      - "80:80"
+    depends_on:
+      - auth-service
+      - user-service
+      - dept-service
+    networks: [intercity237-net]
+    restart: unless-stopped
+
+  # ── Auth Service ───────────────────────────────────────────
+  auth-service:
+    build: ./auth-service
+    container_name: intercity237-auth
+    environment:
+      DB_HOST: db
+      DB_NAME: intercity237
+      DB_USER: intercity237
+      DB_PASS: Intercity2372026
+      APP_URL: http://localhost
+      BASE_URL: ""
+      SITE_NAME: "Intercity237 HR Portal"
+      MAIL_FROM: noreply@intercity237.cm
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks: [intercity237-net]
+    restart: unless-stopped
+
+  # ── User Service ───────────────────────────────────────────
+  user-service:
+    build: ./user-service
+    container_name: intercity237-users
+    environment:
+      DB_HOST: db
+      DB_NAME: intercity237
+      DB_USER: intercity237
+      DB_PASS: Intercity2372026
+      APP_URL: http://localhost
+      BASE_URL: ""
+      SITE_NAME: "Intercity237 HR Portal"
+      MAIL_FROM: noreply@intercity237.cm
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks: [intercity237-net]
+    restart: unless-stopped
+
+  # ── Dept Service ───────────────────────────────────────────
+  dept-service:
+    build: ./dept-service
+    container_name: intercity237-dept
+    environment:
+      DB_HOST: db
+      DB_NAME: intercity237
+      DB_USER: intercity237
+      DB_PASS: Intercity2372026
+      APP_URL: http://localhost
+      BASE_URL: ""
+      SITE_NAME: "Intercity237 HR Portal"
+      MAIL_FROM: noreply@intercity237.cm
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks: [intercity237-net]
+    restart: unless-stopped
+
+  # ── Notification Service (Event Consumer) ─────────────────
+  notification-service:
+    build: ./notification-service
+    container_name: intercity237-notifications
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks: [intercity237-net]
+    restart: unless-stopped
+
+  # ── RabbitMQ (Message Broker) ─────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: intercity237-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    networks: [intercity237-net]
+    restart: unless-stopped
+
+  # ── MariaDB ────────────────────────────────────────────────
+  db:
+    image: mariadb:11
+    container_name: intercity237-db
+    environment:
+      MYSQL_DATABASE: intercity237
+      MYSQL_USER: intercity237
+      MYSQL_PASSWORD: Intercity2372026
+      MYSQL_ROOT_PASSWORD: rootpassword
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/intercity237.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [intercity237-net]
+    restart: unless-stopped
+
+  # ── Prometheus ─────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: intercity237-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=15d'
+    networks: [intercity237-net]
+    restart: unless-stopped
+
+  # ── Node Exporter ──────────────────────────────────────────
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: intercity237-node-exporter
+    command:
+      - '--path.rootfs=/host'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks: [intercity237-net]
+    restart: unless-stopped
+
+  # ── Grafana ────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: intercity237-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin123
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks: [intercity237-net]
+    restart: unless-stopped
+
+volumes:
+  db_data:
+  rabbitmq_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  intercity237-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

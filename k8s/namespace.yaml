@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: intercity237
+  labels:
+    app: intercity237
+    environment: production

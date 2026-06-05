@@ -1,0 +1,77 @@
+---
+# ============================================================
+# Playbook 2: Déploiement des microservices Intercity237 sur k3s
+# Usage: ansible-playbook -i inventory.ini playbook-deploy.yml
+# ============================================================
+- name: Déploiement du portail Intercity237 HR sur Kubernetes
+  hosts: vps
+  become: yes
+
+  vars:
+    app_dir: /opt/intercity237
+    repo_url: "https://github.com/intercity237/intercity237-hr-portal.git"
+    namespace: intercity237
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
+
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+
+  tasks:
+
+    - name: Cloner ou mettre à jour le dépôt GitHub
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ app_dir }}"
+        version: main
+        force: yes
+
+    - name: Créer le namespace Kubernetes si absent
+      shell: "kubectl apply -f {{ app_dir }}/k8s/namespace.yaml"
+      register: ns_result
+
+    - name: Appliquer les secrets de configuration
+      shell: "kubectl apply -f {{ app_dir }}/k8s/secrets.yaml"
+
+    - name: Déployer la base de données MariaDB
+      shell: "kubectl apply -f {{ app_dir }}/k8s/db-deployment.yaml"
+
+    - name: Déployer RabbitMQ (message broker)
+      shell: "kubectl apply -f {{ app_dir }}/k8s/rabbitmq-deployment.yaml"
+
+    - name: Attendre que RabbitMQ soit prêt
+      shell: "kubectl rollout status deployment/rabbitmq -n {{ namespace }} --timeout=120s"
+
+    - name: Déployer les microservices applicatifs
+      shell: "kubectl apply -f {{ app_dir }}/k8s/{{ item }}"
+      loop:
+        - auth-service-deployment.yaml
+        - user-service-deployment.yaml
+        - dept-service-deployment.yaml
+        - notification-service-deployment.yaml
+        - api-gateway-deployment.yaml
+
+    - name: Vérifier le rollout de auth-service
+      shell: "kubectl rollout status deployment/auth-service -n {{ namespace }} --timeout=120s"
+
+    - name: Vérifier le rollout de user-service
+      shell: "kubectl rollout status deployment/user-service -n {{ namespace }} --timeout=120s"
+
+    - name: Vérifier le rollout de dept-service
+      shell: "kubectl rollout status deployment/dept-service -n {{ namespace }} --timeout=120s"
+
+    - name: Lister tous les pods déployés
+      shell: "kubectl get pods -n {{ namespace }} -o wide"
+      register: pods_list
+
+    - name: Lister tous les services déployés
+      shell: "kubectl get services -n {{ namespace }}"
+      register: svc_list
+
+    - name: Afficher le résumé du déploiement
+      debug:
+        msg:
+          - "=== PODS ==="
+          - "{{ pods_list.stdout_lines }}"
+          - "=== SERVICES ==="
+          - "{{ svc_list.stdout_lines }}"
+          - "Déploiement Intercity237 terminé avec succès"

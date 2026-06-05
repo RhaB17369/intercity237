@@ -1,0 +1,119 @@
+---
+# ============================================================
+# Playbook 1: Installation de l'environnement sur le VPS
+# Usage: ansible-playbook -i inventory.ini playbook-install.yml
+# ============================================================
+- name: Installation et configuration du VPS Intercity237
+  hosts: vps
+  become: yes
+
+  vars:
+    k3s_version: "v1.29.0+k3s1"
+    app_user: intercity237
+    app_dir: /opt/intercity237
+
+  tasks:
+
+    - name: Mise à jour du cache des paquets apt
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Installation des dépendances système
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - git
+          - unzip
+          - nginx
+          - ufw
+        state: present
+
+    - name: Installation de Docker Engine
+      shell: curl -fsSL https://get.docker.com | sh
+      args:
+        creates: /usr/bin/docker
+
+    - name: Activation et démarrage de Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Installation de Docker Compose v2
+      get_url:
+        url: "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Installation de k3s (Kubernetes léger)
+      shell: curl -sfL https://get.k3s.io | sh -
+      args:
+        creates: /usr/local/bin/k3s
+      environment:
+        INSTALL_K3S_VERSION: "{{ k3s_version }}"
+
+    - name: Configuration des permissions kubeconfig
+      file:
+        path: /etc/rancher/k3s/k3s.yaml
+        mode: '0644'
+
+    - name: Activation et démarrage de Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Configuration du firewall UFW — autoriser SSH
+      ufw:
+        rule: allow
+        port: "22"
+        proto: tcp
+
+    - name: Configuration du firewall UFW — autoriser HTTP
+      ufw:
+        rule: allow
+        port: "80"
+        proto: tcp
+
+    - name: Configuration du firewall UFW — autoriser HTTPS
+      ufw:
+        rule: allow
+        port: "443"
+        proto: tcp
+
+    - name: Configuration du firewall UFW — autoriser RabbitMQ Management
+      ufw:
+        rule: allow
+        port: "15672"
+        proto: tcp
+
+    - name: Activation du firewall UFW
+      ufw:
+        state: enabled
+        policy: deny
+
+    - name: Créer le dossier de l'application
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Vérification de Docker
+      command: docker --version
+      register: docker_version
+
+    - name: Vérification de k3s
+      command: k3s --version
+      register: k3s_ver
+
+    - name: Affichage du résumé
+      debug:
+        msg:
+          - "Docker: {{ docker_version.stdout }}"
+          - "k3s: {{ k3s_ver.stdout }}"
+          - "VPS prêt pour le déploiement Intercity237"

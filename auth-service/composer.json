@@ -1,0 +1,25 @@
+{
+    "name": "intercity237/auth-service",
+    "description": "Intercity237 HR Portal — Authentication Service",
+    "type": "project",
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Cimencam\\Auth\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Cimencam\\Auth\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit --coverage-text",
+        "test-html": "phpunit --coverage-html coverage/"
+    }
+}

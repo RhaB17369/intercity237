@@ -1,0 +1,46 @@
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'intercity237-hr-portal'
+
+rule_files: []
+
+scrape_configs:
+
+  # Node Exporter — métriques système (CPU, RAM, Disk, Network)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'intercity237-vps'
+
+  # RabbitMQ — métriques message broker
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets: ['rabbitmq:15692']
+
+  # Auth Service — métriques applicatives Apache
+  - job_name: 'auth-service'
+    static_configs:
+      - targets: ['auth-service:80']
+    metrics_path: '/server-status'
+    params:
+      auto: ['']
+
+  # User Service
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['user-service:80']
+
+  # Dept Service
+  - job_name: 'dept-service'
+    static_configs:
+      - targets: ['dept-service:80']
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

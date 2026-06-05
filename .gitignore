@@ -1,0 +1,39 @@
+# Secrets — ne jamais committer
+config/db.php
+auth-service/src/config/db.php
+user-service/src/config/db.php
+dept-service/src/config/db.php
+.env
+*.env
+
+# Dépendances PHP
+vendor/
+*/vendor/
+
+# Couverture de tests
+coverage/
+*/coverage/
+*.clover
+
+# Logs
+*.log
+logs/
+
+# Fichiers OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Docker volumes locaux
+docker-volumes/
+
+# Ansible vault
+ansible/vault_pass.txt
+
+# Kubeconfig local
+kubeconfig.yaml
+*.kubeconfig
